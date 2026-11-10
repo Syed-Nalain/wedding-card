@@ -1,0 +1,5 @@
+# Files Vercel should not upload
+assets/originals-png
+README.md
+DEPLOY.md
+.claude

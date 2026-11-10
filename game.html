@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#4b0c20">
+  <meta name="description" content="Shagun Catch: a wedding game for the guests of Awais, Rida, Mahad and Urwah.">
+  <title>Shagun Catch — With Love</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="game.css">
+</head>
+<body class="game-page"><div class="site-shell" data-event="home">
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark">✳</span><span>WITH LOVE <small>TWO FAMILIES, ONE CELEBRATION</small></span></a>
+    <nav class="event-nav" aria-label="Wedding events"><a class="nav-link" data-page="home" href="index.html">Home</a><a class="nav-link" data-page="mehndi" href="mehndi.html">Mehndi</a><a class="nav-link" data-page="barat" href="barat.html">Barat · Awais</a><a class="nav-link" data-page="barat-mahad" href="barat-mahad.html">Barat · Mahad</a><a class="nav-link" data-page="waleema" href="waleema.html">Waleema</a></nav>
+    <a class="rsvp-link" href="index.html">HOME <span>←</span></a>
+  </header>
+
+  <main class="game-main">
+    <!-- 1. Name + team -->
+    <section class="screen screen-start" data-screen="start">
+      <p class="game-eyebrow"><span></span>A GAME FOR THE GUESTS<span></span></p>
+      <h1 class="game-title">Shagun <em>Catch</em></h1>
+      <p class="game-lead">Catch the mithai, marigolds and shagun envelopes on your thaal. Miss even one and the game is over! Watch out for the hot mirchi. Survive 45 seconds to win!</p>
+      <ul class="legend" aria-label="Points">
+        <li><canvas data-icon="ladoo" width="64" height="64"></canvas><span>Mithai</span><b>+10</b></li>
+        <li><canvas data-icon="marigold" width="64" height="64"></canvas><span>Marigold</span><b>+5</b></li>
+        <li><canvas data-icon="shagun" width="64" height="64"></canvas><span>Shagun</span><b>+30</b></li>
+        <li><canvas data-icon="mirchi" width="64" height="64"></canvas><span>Mirchi</span><b class="bad">−20</b></li>
+      </ul>
+
+      <form class="player-form" data-player-form novalidate>
+        <label class="field-label" for="playerName">Enter your name</label>
+        <input id="playerName" name="name" type="text" maxlength="24" autocomplete="nickname" placeholder="Your name" required>
+        <p class="field-error" data-name-error hidden>Please enter your name.</p>
+
+        <fieldset class="teams">
+          <legend class="field-label">Choose your team</legend>
+          <label class="team team-rida"><input type="radio" name="team" value="Team Rida" required><span class="team-dot"></span><span>Team Rida</span></label>
+          <label class="team team-awais-mahad"><input type="radio" name="team" value="Team Awais Mahad"><span class="team-dot"></span><span>Team Awais Mahad</span></label>
+          <label class="team team-urwah"><input type="radio" name="team" value="Team Urwah"><span class="team-dot"></span><span>Team Urwah</span></label>
+        </fieldset>
+        <p class="field-error" data-team-error hidden>Please choose a team.</p>
+
+        <button class="game-btn primary" type="submit">Start game <span>→</span></button>
+      </form>
+      <button class="link-btn" type="button" data-show-board>See the scoreboard</button>
+    </section>
+
+    <!-- 2. Play -->
+    <section class="screen screen-play" data-screen="play" hidden>
+      <div class="hud">
+        <div><span>SCORE</span><strong data-hud-score>0</strong></div>
+        <div class="hud-player"><span data-hud-team>TEAM</span><strong data-hud-name>—</strong></div>
+        <div><span>TIME</span><strong data-hud-time>45</strong></div>
+      </div>
+      <div class="arena" data-arena>
+        <canvas class="arena-canvas" data-canvas aria-label="Game area. Drag or use arrow keys to move the thaal."></canvas>
+        <div class="combo" data-combo hidden></div>
+        <div class="countdown-overlay" data-ready hidden></div>
+      </div>
+    </section>
+
+    <!-- 3. Game over + scoreboard -->
+    <section class="screen screen-over" data-screen="over" hidden>
+      <div class="result" data-result>
+        <p class="game-eyebrow"><span></span>GAME OVER<span></span></p>
+        <p class="result-reason" data-result-reason></p>
+        <h2 class="result-title">Shabash, <em data-result-name>friend</em>!</h2>
+        <p class="result-score"><strong data-result-score>0</strong><span>points for <b data-result-team>your team</b></span></p>
+        <p class="result-rank" data-result-rank></p>
+      </div>
+
+      <div class="board-card">
+        <div class="winner" data-winner hidden>
+          <span class="crown" aria-hidden="true">👑</span>
+          <p><strong data-winner-name></strong> is on top of the scoreboard, so <strong data-winner-team></strong> is winning!</p>
+        </div>
+        <h3 class="board-title">Scoreboard</h3>
+        <ol class="board" data-board><li class="board-empty">Loading scores…</li></ol>
+        <p class="board-note" data-board-note></p>
+      </div>
+
+      <div class="over-actions">
+        <button class="game-btn primary" type="button" data-play-again>Play again</button>
+        <button class="game-btn ghost" type="button" data-change-player>Change name or team</button>
+        <a class="game-btn ghost" href="index.html">Back to home</a>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="footer-left"><a class="brand footer-brand" href="index.html"><span class="brand-mark">✳</span><span>WITH LOVE <small>AND HAPPILY EVER AFTER</small></span></a><span class="footer-orders">For orders of wedding website contact: <a href="tel:+923260142469">03260142469</a></span></div><p>Made with love, for the people we love.</p><a href="#" class="back-top">BACK TO TOP ↑</a></footer>
+</div>
+<script src="game-config.js"></script><script src="game.js"></script></body></html>
