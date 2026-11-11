@@ -10,6 +10,7 @@
   /* ---------- scoreboard (shared via Supabase if configured, otherwise this device) ---------- */
   const cfg = window.GAME_CONFIG || {};
   const remote = Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
+  const GAME_SECONDS = 45;
   const LOCAL_KEY = 'shagun-catch-scores-v1';
   const api = path => `${cfg.supabaseUrl.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '')}/rest/v1/${path}`;
   // New Supabase 'publishable' keys go only in the apikey header; legacy JWT 'anon' keys also go in Authorization.
@@ -94,7 +95,8 @@
     jamun:    { pts: 10, weight: 18, label: 'Gulab jamun' },
     marigold: { pts: 5,  weight: 14, label: 'Marigold' },
     shagun:   { pts: 30, weight: 6,  label: 'Shagun envelope' },
-    mirchi:   { pts: -20, weight: 18, label: 'Mirchi' }
+    mirchi:   { pts: -20, weight: 18, label: 'Mirchi' },
+    glow:     { pts: 30, weight: 0,  label: 'Glowing shagun' }
   };
   const totalWeight = Object.values(KINDS).reduce((s, k) => s + k.weight, 0);
   function pickKind() {
@@ -133,6 +135,20 @@
       c.strokeStyle = '#ffd24d'; c.lineWidth = r * .08; c.strokeRect(-w / 2 + r * .14, -h / 2 + r * .14, w - r * .28, h - r * .28);
       c.fillStyle = '#e0457b'; c.beginPath(); c.moveTo(-w / 2, -h / 2); c.lineTo(0, h * .1); c.lineTo(w / 2, -h / 2); c.closePath(); c.fill();
       c.fillStyle = '#ffd24d'; c.beginPath(); c.arc(0, h * .08, r * .22, 0, 7); c.fill();
+    } else if (kind === 'glow') {
+      const pulse = .75 + .25 * Math.sin(performance.now() / 160);
+      const halo = c.createRadialGradient(0, 0, r * .2, 0, 0, r * 2.1);
+      halo.addColorStop(0, `rgba(255,230,120,${.85 * pulse})`); halo.addColorStop(1, 'rgba(255,210,77,0)');
+      c.fillStyle = halo; c.beginPath(); c.arc(0, 0, r * 2.1, 0, 7); c.fill();
+      c.strokeStyle = `rgba(255,240,170,${pulse})`; c.lineWidth = r * .08; c.lineCap = 'round';
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; c.beginPath(); c.moveTo(Math.cos(a) * r * 1.25, Math.sin(a) * r * 1.25); c.lineTo(Math.cos(a) * r * 1.7, Math.sin(a) * r * 1.7); c.stroke(); }
+      const w = r * 1.8, h = r * 1.25;
+      c.shadowColor = '#ffe066'; c.shadowBlur = r * 1.2 * pulse;
+      c.fillStyle = '#ffcf33'; roundRect(c, -w / 2, -h / 2, w, h, r * .15); c.fill();
+      c.shadowBlur = 0;
+      c.strokeStyle = '#c2185b'; c.lineWidth = r * .08; c.strokeRect(-w / 2 + r * .14, -h / 2 + r * .14, w - r * .28, h - r * .28);
+      c.fillStyle = '#fff1b0'; c.beginPath(); c.moveTo(-w / 2, -h / 2); c.lineTo(0, h * .1); c.lineTo(w / 2, -h / 2); c.closePath(); c.fill();
+      c.fillStyle = '#c2185b'; c.beginPath(); c.arc(0, h * .08, r * .22, 0, 7); c.fill();
     } else if (kind === 'mirchi') {
       c.fillStyle = '#1f9d3a'; c.beginPath();
       c.moveTo(-r * .2, -r * .8);
@@ -159,7 +175,7 @@
     c.restore();
   }
 
-  document.querySelectorAll('canvas[data-icon]').forEach(cv => drawItem(cv.getContext('2d'), cv.dataset.icon, 32, 34, 22));
+  document.querySelectorAll('canvas[data-icon]').forEach(cv => drawItem(cv.getContext('2d'), cv.dataset.icon, 32, 34, cv.dataset.icon === 'glow' ? 14 : 22));
 
   /* ---------- sound ---------- */
   let actx;
@@ -181,33 +197,19 @@
   const hud = { score: $('[data-hud-score]'), time: $('[data-hud-time]'), name: $('[data-hud-name]'), team: $('[data-hud-team]') };
   const comboEl = $('[data-combo]');
   const readyEl = $('[data-ready]');
-  /* ---------- difficulty ----------
-     0-45 s: the same pace as the original 45-second game.
-     After 45 s: the pace climbs steeply and, without any warning, suddenly jumps
-     much faster or slower at random moments. By about 2 minutes it is practically
-     impossible to keep up. */
-  const WARMUP = 45;
-  function updateSpeed(s, dt) {
-    const t = s.elapsed;
-    if (t < WARMUP) {
-      const p = t / WARMUP;
-      s.fall = .32 + p * .38;   // screen heights per second: 0.32 -> 0.70
-      s.gap = .72 - p * .36;    // seconds between items: 0.72 -> 0.36
-      return;
-    }
-    const x = t - WARMUP;
-    // ~0.70 at 45 s, ~1.4 at 90 s, ~3.2 at 120 s
-    const base = .70 + x * .016 + Math.max(0, t - 90) ** 2 * .0015;
-    s.surgeIn -= dt;
-    if (s.surgeIn <= 0) {
-      // Sudden change: either a slow patch (0.45-0.9x) or a burst (1.3-2.3x), lasting 0.5-2.5 s.
-      s.surge = Math.random() < .5 ? .45 + Math.random() * .45 : 1.3 + Math.random();
-      s.surgeIn = .5 + Math.random() * 2;
-    }
-    s.fall = base * s.surge;
-    s.gap = Math.max(.14, .36 - x * .0035) / Math.sqrt(s.surge);
+  /* ---------- rare glowing shagun (+10 seconds) ----------
+     Rarity rules:
+     - never in the first 12 seconds of a round;
+     - after one appears, the next can't come for at least 20 s, then 26 s, then 32 s;
+     - once allowed, each new item has only a 4% chance of being one (so the wait is random, ~12 s on average);
+     - at most 3 per round. */
+  const GLOW = { firstAfter: 12, gap: 14, gapGrowth: 6, chance: .04, max: 3, bonus: 10 };
+  function nextIsGlow(s) {
+    if (s.glowCount >= GLOW.max || s.elapsed < s.nextGlowAt || Math.random() >= GLOW.chance) return false;
+    s.glowCount++;
+    s.nextGlowAt = s.elapsed + GLOW.gap + GLOW.gapGrowth * s.glowCount;
+    return true;
   }
-  const fmtTime = sec => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
   let W = 0, H = 0, dpr = 1, state = null, raf = 0;
 
   function resize() {
@@ -235,10 +237,10 @@
     show('play');
     hud.name.textContent = player.name;
     hud.team.textContent = player.team.toUpperCase();
-    hud.score.textContent = '0'; hud.time.textContent = '0:00';
+    hud.score.textContent = '0'; hud.time.textContent = GAME_SECONDS;
     comboEl.hidden = true;
     resize();
-    state = { running: false, score: 0, elapsed: 0, fall: .32, gap: .72, surge: 1, surgeIn: 0, items: [], pops: [], spawnIn: 0, combo: 0, best: 0, caught: 0,
+    state = { running: false, score: 0, timeLeft: GAME_SECONDS, elapsed: 0, glowCount: 0, nextGlowAt: GLOW.firstAfter, items: [], pops: [], spawnIn: 0, combo: 0, best: 0, caught: 0,
       plateW: Math.max(84, Math.min(150, W * .26)), plateY: H - 36, x: W / 2, target: W / 2, last: 0 };
     cancelAnimationFrame(raf);
     let n = 3; readyEl.hidden = false; readyEl.textContent = n;
@@ -253,7 +255,7 @@
   }
 
   function loop(now) {
-    const dt = Math.min(.05, (now - state.last) / 1000); state.last = now;
+    const dt = Math.max(0, Math.min(.05, (now - state.last) / 1000)); state.last = now;
     update(dt); render();
     if (state.running) raf = requestAnimationFrame(loop);
   }
@@ -261,8 +263,11 @@
   function update(dt) {
     const s = state;
     s.elapsed += dt;
-    hud.time.textContent = fmtTime(s.elapsed);
-    updateSpeed(s, dt);
+    s.timeLeft -= dt;
+    if (s.timeLeft <= 0) { s.timeLeft = 0; hud.time.textContent = 0; endGame(); return; }
+    hud.time.textContent = Math.ceil(s.timeLeft);
+    // Original pace: speeds up over the first 45 seconds, then stays at that top speed (also during bonus time).
+    const progress = Math.min(1, s.elapsed / GAME_SECONDS);
 
     const kb = (keys.ArrowRight || keys.d ? 1 : 0) - (keys.ArrowLeft || keys.a ? 1 : 0);
     if (kb) s.target = Math.min(Math.max(s.x + kb * W * 1.4 * dt * 4, s.plateW / 2), W - s.plateW / 2);
@@ -271,20 +276,20 @@
     s.spawnIn -= dt;
     if (s.spawnIn <= 0) {
       const r = Math.max(15, Math.min(24, W * .05));
-      const kind = pickKind();
-      const spread = s.elapsed < WARMUP ? .3 : .5;           // items vary more in speed after the warm-up
-      s.items.push({ kind, x: r + Math.random() * (W - 2 * r), y: -r, r, k: 1 - spread / 2 + Math.random() * spread, rot: Math.random() * 6, vr: (Math.random() - .5) * 3 });
-      s.spawnIn = s.gap;
+      const kind = nextIsGlow(s) ? 'glow' : pickKind();
+      s.items.push({ kind, x: r + Math.random() * (W - 2 * r), y: -r, r, vy: H * (.32 + progress * .38) * (0.85 + Math.random() * .3), rot: Math.random() * 6, vr: (Math.random() - .5) * 3 });
+      s.spawnIn = .72 - progress * .36;
     }
 
     const plateTop = s.plateY - s.plateW * .11;
     for (const it of s.items) {
-      it.y += H * s.fall * it.k * dt; it.rot += it.vr * dt;
+      it.y += it.vy * dt; it.rot += it.vr * dt;
       if (!it.done && it.y + it.r * .6 >= plateTop && it.y - it.r <= s.plateY + 6 && Math.abs(it.x - s.x) <= s.plateW / 2 + it.r * .4) {
         it.done = true; catchItem(it);
       } else if (!it.done && it.y - it.r > H) {
         it.done = true;
-        if (it.kind !== 'mirchi' && !s.missed) s.missed = it.kind;
+        // Missing a mirchi or a (bonus) glowing shagun is fine; missing anything else ends the game.
+        if (it.kind !== 'mirchi' && it.kind !== 'glow' && !s.missed) s.missed = it.kind;
       }
     }
     if (s.missed) { endGame(); return; }
@@ -311,6 +316,12 @@
     s.score = Math.max(0, s.score + pts);
     hud.score.textContent = s.score;
     s.pops.push({ x: it.x, y: s.plateY - 30, text: (pts > 0 ? '+' : '') + pts, good: pts > 0, life: .8 });
+    if (it.kind === 'glow') {
+      s.timeLeft += GLOW.bonus;
+      hud.time.textContent = Math.ceil(s.timeLeft);
+      hud.time.parentElement.classList.remove('bonus'); void hud.time.offsetWidth; hud.time.parentElement.classList.add('bonus');
+      s.pops.push({ x: it.x, y: s.plateY - 56, text: `+${GLOW.bonus} sec!`, good: true, life: 1.3 });
+    }
   }
 
   function render() {
@@ -331,8 +342,8 @@
   async function endGame() {
     state.running = false; cancelAnimationFrame(raf);
     const entry = { name: player.name, team: player.team, score: state.score, at: Date.now(),
-      reason: `Oh no, you missed a ${KINDS[state.missed].label.toLowerCase()}! You lasted ${fmtTime(state.elapsed)}.` };
-    { arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake'); blip(false); await new Promise(r => setTimeout(r, 600)); }
+      reason: state.missed ? `Oh no, you missed a ${KINDS[state.missed].label.toLowerCase()}!` : 'Time is up! You caught everything.' };
+    if (state.missed) { arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake'); blip(false); await new Promise(r => setTimeout(r, 600)); }
     let saveError = null;
     try { await Board.add(entry); } catch (err) { saveError = err; }
     showOver(entry, saveError);

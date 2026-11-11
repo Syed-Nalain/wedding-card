@@ -20,12 +20,13 @@
     <section class="screen screen-start" data-screen="start">
       <p class="game-eyebrow"><span></span>A GAME FOR THE GUESTS<span></span></p>
       <h1 class="game-title">Shagun <em>Catch</em></h1>
-      <p class="game-lead">Catch the mithai, marigolds and shagun envelopes on your thaal. Miss even one and the game is over! Watch out for the hot mirchi. How long can you last?</p>
+      <p class="game-lead">Catch the mithai, marigolds and shagun envelopes on your thaal. Miss even one and the game is over! Watch out for the hot mirchi. Survive 45 seconds to win, and catch a rare glowing shagun for 10 extra seconds.</p>
       <ul class="legend" aria-label="Points">
         <li><canvas data-icon="ladoo" width="64" height="64"></canvas><span>Mithai</span><b>+10</b></li>
         <li><canvas data-icon="marigold" width="64" height="64"></canvas><span>Marigold</span><b>+5</b></li>
         <li><canvas data-icon="shagun" width="64" height="64"></canvas><span>Shagun</span><b>+30</b></li>
         <li><canvas data-icon="mirchi" width="64" height="64"></canvas><span>Mirchi</span><b class="bad">−20</b></li>
+        <li class="legend-glow"><canvas data-icon="glow" width="64" height="64"></canvas><span>Glowing</span><b>+10 sec</b></li>
       </ul>
 
       <form class="player-form" data-player-form novalidate>
@@ -75,7 +76,7 @@
           <span class="crown" aria-hidden="true">👑</span>
           <p><strong data-winner-name></strong> is on top of the scoreboard, so <strong data-winner-team></strong> is winning!</p>
         </div>
-        <h3 class="board-title">Scoreboard</h3>
+        <div class="board-head"><h3 class="board-title">Scoreboard</h3><p class="board-notice">Game rules are updated, sorry for score reduction</p></div>
         <ol class="board" data-board><li class="board-empty">Loading scores…</li></ol>
         <p class="board-note" data-board-note></p>
       </div>

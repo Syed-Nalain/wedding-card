@@ -12,7 +12,7 @@
 .game-title em,.result-title em{color:var(--marigold)}
 .game-lead{color:#f5dcc7;line-height:1.7;font-size:15px;margin:0 auto 22px;max-width:440px}
 
-.legend{list-style:none;padding:0;margin:0 0 28px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.legend{list-style:none;padding:0;margin:0 0 28px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .legend li{background:#ffffff0d;border:1px solid #ffd24d33;border-radius:14px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:#f5dcc7}
 .legend canvas{width:36px;height:36px}
 .legend b{color:var(--gold);font-size:13px}
@@ -91,3 +91,10 @@
   .over-actions .game-btn{width:100%}
 }
 .result-reason{color:#ffcf8a;font-weight:600;font-size:15px;margin:0 0 6px}.result-reason:empty{display:none}
+.legend-glow{border-color:#ffd24d!important;box-shadow:0 0 14px #ffd24d55}
+.hud div.bonus{animation:bonusGlow 1.2s ease-out}
+@keyframes bonusGlow{0%{background:#ffd24d;box-shadow:0 0 22px #ffd24d}100%{background:#ffffff12;box-shadow:none}}
+@media(max-width:650px){.legend{gap:5px}.legend li{padding:8px 2px 6px;font-size:9px}.legend b{font-size:11px}.legend canvas{width:30px;height:30px}}
+.board-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:0 0 10px}
+.board-head .board-title{margin:0}
+.board-notice{margin:0;padding:6px 12px;border-radius:10px;background:#fff1b0;border:1.5px solid #f2a516;color:#7a1630;font-size:13px;font-weight:700;line-height:1.35;box-shadow:0 0 0 3px #ffd24d40}
