@@ -181,33 +181,31 @@
   const hud = { score: $('[data-hud-score]'), time: $('[data-hud-time]'), name: $('[data-hud-name]'), team: $('[data-hud-team]') };
   const comboEl = $('[data-combo]');
   const readyEl = $('[data-ready]');
-  const speedFlash = $('[data-speed-flash]');
-  let flashTimer = 0;
-  function flash(text) {
-    speedFlash.textContent = text; speedFlash.hidden = false;
-    speedFlash.classList.remove('pop'); void speedFlash.offsetWidth; speedFlash.classList.add('pop');
-    clearTimeout(flashTimer); flashTimer = setTimeout(() => { speedFlash.hidden = true; }, 1100);
-  }
-
   /* ---------- difficulty ----------
-     0-60 s: starts slow and speeds up gently.
-     After 60 s: keeps creeping up, and every few seconds the speed jumps randomly faster or slower. */
-  const SLOW_START = 0.55, CALM_PHASE = 60;
+     0-45 s: the same pace as the original 45-second game.
+     After 45 s: the pace climbs steeply and, without any warning, suddenly jumps
+     much faster or slower at random moments. By about 2 minutes it is practically
+     impossible to keep up. */
+  const WARMUP = 45;
   function updateSpeed(s, dt) {
     const t = s.elapsed;
-    if (t < CALM_PHASE) { s.speed = SLOW_START + (1 - SLOW_START) * (t / CALM_PHASE); return; }
-    if (!s.wild) { s.wild = true; flash('Now it gets wild!'); s.surgeIn = 2; }
-    const base = Math.min(1.9, 1 + (t - CALM_PHASE) * 0.008);
+    if (t < WARMUP) {
+      const p = t / WARMUP;
+      s.fall = .32 + p * .38;   // screen heights per second: 0.32 -> 0.70
+      s.gap = .72 - p * .36;    // seconds between items: 0.72 -> 0.36
+      return;
+    }
+    const x = t - WARMUP;
+    // ~0.70 at 45 s, ~1.4 at 90 s, ~3.2 at 120 s
+    const base = .70 + x * .016 + Math.max(0, t - 90) ** 2 * .0015;
     s.surgeIn -= dt;
     if (s.surgeIn <= 0) {
-      const prev = s.surgeTarget;
-      s.surgeTarget = 0.6 + Math.random() * 0.95;          // between 0.6x and 1.55x
-      s.surgeIn = 2.5 + Math.random() * 3.5;                 // next change in 2.5-6 s
-      if (s.surgeTarget - prev > 0.25) flash('Faster!');
-      else if (prev - s.surgeTarget > 0.25) flash('Slower...');
+      // Sudden change: either a slow patch (0.45-0.9x) or a burst (1.3-2.3x), lasting 0.5-2.5 s.
+      s.surge = Math.random() < .5 ? .45 + Math.random() * .45 : 1.3 + Math.random();
+      s.surgeIn = .5 + Math.random() * 2;
     }
-    s.surge += (s.surgeTarget - s.surge) * Math.min(1, dt * 2.5);
-    s.speed = base * s.surge;
+    s.fall = base * s.surge;
+    s.gap = Math.max(.14, .36 - x * .0035) / Math.sqrt(s.surge);
   }
   const fmtTime = sec => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
   let W = 0, H = 0, dpr = 1, state = null, raf = 0;
@@ -240,8 +238,7 @@
     hud.score.textContent = '0'; hud.time.textContent = '0:00';
     comboEl.hidden = true;
     resize();
-    speedFlash.hidden = true;
-    state = { running: false, score: 0, elapsed: 0, speed: SLOW_START, surge: 1, surgeTarget: 1, surgeIn: 0, wild: false, items: [], pops: [], spawnIn: 0, combo: 0, best: 0, caught: 0,
+    state = { running: false, score: 0, elapsed: 0, fall: .32, gap: .72, surge: 1, surgeIn: 0, items: [], pops: [], spawnIn: 0, combo: 0, best: 0, caught: 0,
       plateW: Math.max(84, Math.min(150, W * .26)), plateY: H - 36, x: W / 2, target: W / 2, last: 0 };
     cancelAnimationFrame(raf);
     let n = 3; readyEl.hidden = false; readyEl.textContent = n;
@@ -275,14 +272,14 @@
     if (s.spawnIn <= 0) {
       const r = Math.max(15, Math.min(24, W * .05));
       const kind = pickKind();
-      const spread = s.wild ? 0.5 : 0.24;                    // items vary more in speed after the first minute
+      const spread = s.elapsed < WARMUP ? .3 : .5;           // items vary more in speed after the warm-up
       s.items.push({ kind, x: r + Math.random() * (W - 2 * r), y: -r, r, k: 1 - spread / 2 + Math.random() * spread, rot: Math.random() * 6, vr: (Math.random() - .5) * 3 });
-      s.spawnIn = Math.min(1.1, Math.max(.3, .85 / Math.pow(s.speed, .7)));
+      s.spawnIn = s.gap;
     }
 
     const plateTop = s.plateY - s.plateW * .11;
     for (const it of s.items) {
-      it.y += H * .38 * s.speed * it.k * dt; it.rot += it.vr * dt;
+      it.y += H * s.fall * it.k * dt; it.rot += it.vr * dt;
       if (!it.done && it.y + it.r * .6 >= plateTop && it.y - it.r <= s.plateY + 6 && Math.abs(it.x - s.x) <= s.plateW / 2 + it.r * .4) {
         it.done = true; catchItem(it);
       } else if (!it.done && it.y - it.r > H) {
@@ -335,7 +332,6 @@
     state.running = false; cancelAnimationFrame(raf);
     const entry = { name: player.name, team: player.team, score: state.score, at: Date.now(),
       reason: `Oh no, you missed a ${KINDS[state.missed].label.toLowerCase()}! You lasted ${fmtTime(state.elapsed)}.` };
-    speedFlash.hidden = true;
     { arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake'); blip(false); await new Promise(r => setTimeout(r, 600)); }
     let saveError = null;
     try { await Board.add(entry); } catch (err) { saveError = err; }

@@ -91,7 +91,3 @@
   .over-actions .game-btn{width:100%}
 }
 .result-reason{color:#ffcf8a;font-weight:600;font-size:15px;margin:0 0 6px}.result-reason:empty{display:none}
-.speed-flash{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font-family:var(--display);font-size:30px;font-weight:600;color:var(--gold);text-shadow:0 3px 12px #000a;pointer-events:none;white-space:nowrap}
-.speed-flash[hidden]{display:none}
-.speed-flash.pop{animation:flashPop 1.1s ease-out forwards}
-@keyframes flashPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
