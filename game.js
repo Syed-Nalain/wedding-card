@@ -1,6 +1,5 @@
 // Shagun Catch: catch falling mithai, marigolds and shagun envelopes on a thaal, dodge the mirchi.
 (() => {
-  const GAME_SECONDS = 45;
   const TEAM_CLASS = { 'Team Rida': 'team-rida', 'Team Awais Mahad': 'team-awais-mahad', 'Team Urwah': 'team-urwah' };
   const $ = sel => document.querySelector(sel);
   const store = {
@@ -16,26 +15,43 @@
   // New Supabase 'publishable' keys go only in the apikey header; legacy JWT 'anon' keys also go in Authorization.
   const headers = () => ({ apikey: cfg.supabaseAnonKey, 'Content-Type': 'application/json', ...(cfg.supabaseAnonKey.startsWith('eyJ') ? { Authorization: `Bearer ${cfg.supabaseAnonKey}` } : {}) });
 
+  // One entry per name (ignoring capital letters): keep only that name's highest score.
+  const nameKey = n => String(n).trim().toLowerCase();
+  const bestPerName = rows => {
+    const seen = new Set();
+    return rows.filter(r => { const k = nameKey(r.name); if (seen.has(k)) return false; seen.add(k); return true; });
+  };
+  const sortScores = rows => rows.sort((a, b) => b.score - a.score || a.at - b.at);
+
   const Board = {
     shared: remote,
     async add(entry) {
       const local = store.get(LOCAL_KEY, []);
-      local.push(entry); local.sort((a, b) => b.score - a.score || a.at - b.at);
-      store.set(LOCAL_KEY, local.slice(0, 100));
+      local.push(entry);
+      store.set(LOCAL_KEY, bestPerName(sortScores(local)).slice(0, 100));
       if (!remote) return;
-      const res = await fetch(api('game_scores'), {
-        method: 'POST', headers: { ...headers(), Prefer: 'return=minimal' },
-        body: JSON.stringify({ name: entry.name, team: entry.team, score: entry.score })
+      // submit_score keeps only the best score per name (see supabase-best-score.sql).
+      let res = await fetch(api('rpc/submit_score'), {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ p_name: entry.name, p_team: entry.team, p_score: entry.score })
       });
+      if (res.status === 404) {
+        // The database update has not been run yet: fall back to adding a row.
+        res = await fetch(api('game_scores'), {
+          method: 'POST', headers: { ...headers(), Prefer: 'return=minimal' },
+          body: JSON.stringify({ name: entry.name, team: entry.team, score: entry.score })
+        });
+      }
       if (!res.ok) throw new Error(`Save failed (${res.status})`);
     },
     async top(limit = 15) {
       if (remote) {
-        const res = await fetch(api(`game_scores?select=name,team,score,created_at&order=score.desc,created_at.asc&limit=${limit}`), { headers: headers() });
+        const res = await fetch(api('game_scores?select=name,team,score,created_at&order=score.desc,created_at.asc&limit=500'), { headers: headers() });
         if (!res.ok) throw new Error(`Load failed (${res.status})`);
-        return (await res.json()).map(r => ({ name: r.name, team: r.team, score: r.score, at: Date.parse(r.created_at) }));
+        const rows = (await res.json()).map(r => ({ name: r.name, team: r.team, score: r.score, at: Date.parse(r.created_at) }));
+        return bestPerName(rows).slice(0, limit);
       }
-      return store.get(LOCAL_KEY, []).slice(0, limit);
+      return bestPerName(sortScores(store.get(LOCAL_KEY, []))).slice(0, limit);
     }
   };
 
@@ -165,6 +181,35 @@
   const hud = { score: $('[data-hud-score]'), time: $('[data-hud-time]'), name: $('[data-hud-name]'), team: $('[data-hud-team]') };
   const comboEl = $('[data-combo]');
   const readyEl = $('[data-ready]');
+  const speedFlash = $('[data-speed-flash]');
+  let flashTimer = 0;
+  function flash(text) {
+    speedFlash.textContent = text; speedFlash.hidden = false;
+    speedFlash.classList.remove('pop'); void speedFlash.offsetWidth; speedFlash.classList.add('pop');
+    clearTimeout(flashTimer); flashTimer = setTimeout(() => { speedFlash.hidden = true; }, 1100);
+  }
+
+  /* ---------- difficulty ----------
+     0-60 s: starts slow and speeds up gently.
+     After 60 s: keeps creeping up, and every few seconds the speed jumps randomly faster or slower. */
+  const SLOW_START = 0.55, CALM_PHASE = 60;
+  function updateSpeed(s, dt) {
+    const t = s.elapsed;
+    if (t < CALM_PHASE) { s.speed = SLOW_START + (1 - SLOW_START) * (t / CALM_PHASE); return; }
+    if (!s.wild) { s.wild = true; flash('Now it gets wild!'); s.surgeIn = 2; }
+    const base = Math.min(1.9, 1 + (t - CALM_PHASE) * 0.008);
+    s.surgeIn -= dt;
+    if (s.surgeIn <= 0) {
+      const prev = s.surgeTarget;
+      s.surgeTarget = 0.6 + Math.random() * 0.95;          // between 0.6x and 1.55x
+      s.surgeIn = 2.5 + Math.random() * 3.5;                 // next change in 2.5-6 s
+      if (s.surgeTarget - prev > 0.25) flash('Faster!');
+      else if (prev - s.surgeTarget > 0.25) flash('Slower...');
+    }
+    s.surge += (s.surgeTarget - s.surge) * Math.min(1, dt * 2.5);
+    s.speed = base * s.surge;
+  }
+  const fmtTime = sec => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
   let W = 0, H = 0, dpr = 1, state = null, raf = 0;
 
   function resize() {
@@ -192,10 +237,11 @@
     show('play');
     hud.name.textContent = player.name;
     hud.team.textContent = player.team.toUpperCase();
-    hud.score.textContent = '0'; hud.time.textContent = GAME_SECONDS;
+    hud.score.textContent = '0'; hud.time.textContent = '0:00';
     comboEl.hidden = true;
     resize();
-    state = { running: false, score: 0, timeLeft: GAME_SECONDS, items: [], pops: [], spawnIn: 0, combo: 0, best: 0, caught: 0,
+    speedFlash.hidden = true;
+    state = { running: false, score: 0, elapsed: 0, speed: SLOW_START, surge: 1, surgeTarget: 1, surgeIn: 0, wild: false, items: [], pops: [], spawnIn: 0, combo: 0, best: 0, caught: 0,
       plateW: Math.max(84, Math.min(150, W * .26)), plateY: H - 36, x: W / 2, target: W / 2, last: 0 };
     cancelAnimationFrame(raf);
     let n = 3; readyEl.hidden = false; readyEl.textContent = n;
@@ -217,10 +263,9 @@
 
   function update(dt) {
     const s = state;
-    s.timeLeft -= dt;
-    if (s.timeLeft <= 0) { s.timeLeft = 0; hud.time.textContent = 0; endGame(); return; }
-    hud.time.textContent = Math.ceil(s.timeLeft);
-    const progress = 1 - s.timeLeft / GAME_SECONDS;
+    s.elapsed += dt;
+    hud.time.textContent = fmtTime(s.elapsed);
+    updateSpeed(s, dt);
 
     const kb = (keys.ArrowRight || keys.d ? 1 : 0) - (keys.ArrowLeft || keys.a ? 1 : 0);
     if (kb) s.target = Math.min(Math.max(s.x + kb * W * 1.4 * dt * 4, s.plateW / 2), W - s.plateW / 2);
@@ -230,13 +275,14 @@
     if (s.spawnIn <= 0) {
       const r = Math.max(15, Math.min(24, W * .05));
       const kind = pickKind();
-      s.items.push({ kind, x: r + Math.random() * (W - 2 * r), y: -r, r, vy: H * (.32 + progress * .38) * (0.85 + Math.random() * .3), rot: Math.random() * 6, vr: (Math.random() - .5) * 3 });
-      s.spawnIn = .72 - progress * .36;
+      const spread = s.wild ? 0.5 : 0.24;                    // items vary more in speed after the first minute
+      s.items.push({ kind, x: r + Math.random() * (W - 2 * r), y: -r, r, k: 1 - spread / 2 + Math.random() * spread, rot: Math.random() * 6, vr: (Math.random() - .5) * 3 });
+      s.spawnIn = Math.min(1.1, Math.max(.3, .85 / Math.pow(s.speed, .7)));
     }
 
     const plateTop = s.plateY - s.plateW * .11;
     for (const it of s.items) {
-      it.y += it.vy * dt; it.rot += it.vr * dt;
+      it.y += H * .38 * s.speed * it.k * dt; it.rot += it.vr * dt;
       if (!it.done && it.y + it.r * .6 >= plateTop && it.y - it.r <= s.plateY + 6 && Math.abs(it.x - s.x) <= s.plateW / 2 + it.r * .4) {
         it.done = true; catchItem(it);
       } else if (!it.done && it.y - it.r > H) {
@@ -288,8 +334,9 @@
   async function endGame() {
     state.running = false; cancelAnimationFrame(raf);
     const entry = { name: player.name, team: player.team, score: state.score, at: Date.now(),
-      reason: state.missed ? `Oh no, you missed a ${KINDS[state.missed].label.toLowerCase()}!` : 'Time is up! You caught everything.' };
-    if (state.missed) { arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake'); blip(false); await new Promise(r => setTimeout(r, 600)); }
+      reason: `Oh no, you missed a ${KINDS[state.missed].label.toLowerCase()}! You lasted ${fmtTime(state.elapsed)}.` };
+    speedFlash.hidden = true;
+    { arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake'); blip(false); await new Promise(r => setTimeout(r, 600)); }
     let saveError = null;
     try { await Board.add(entry); } catch (err) { saveError = err; }
     showOver(entry, saveError);
@@ -328,7 +375,7 @@
     let myRank = 0;
     rows.forEach((r, i) => {
       const li = document.createElement('li');
-      const isMe = entry && !myRank && r.name === entry.name && r.score === entry.score && r.team === entry.team;
+      const isMe = entry && !myRank && nameKey(r.name) === nameKey(entry.name);
       if (isMe) { myRank = i + 1; li.className = 'me'; }
       const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = i === 0 ? '👑' : i + 1;
       const who = document.createElement('span'); who.className = 'who';
@@ -343,7 +390,10 @@
     $('[data-winner-team]').textContent = top.team;
     $('[data-winner]').hidden = false;
     if (entry) {
-      $('[data-result-rank]').textContent = myRank === 1 ? 'You are on top of the scoreboard!' : myRank ? `You are #${myRank} on the scoreboard.` : 'Keep playing to reach the top 15!';
+      const mine = myRank ? rows[myRank - 1] : null;
+      $('[data-result-rank]').textContent = !mine ? 'Keep playing to reach the top 15!'
+        : mine.score > entry.score ? `Your best is still ${mine.score} (#${myRank} on the scoreboard).`
+        : myRank === 1 ? 'New best! You are on top of the scoreboard!' : `New best! You are #${myRank} on the scoreboard.`;
     }
   }
 })();

@@ -66,6 +66,19 @@ grant select, insert on public.game_scores to anon;
 
 What this does: guests can **add** a score and **see** scores, but they can't edit or delete anyone's score. Only you can, from the Supabase dashboard.
 
+### 1.3b Keep one score per name
+Run this right after 1.3. If your site is already live, run it now.
+
+1. Open the file **`supabase-best-score.sql`** from the project folder and copy everything in it.
+2. In Supabase, open **SQL Editor → New query**, paste it and click **Run**.
+3. The result shows the top 20 scores, with each name listed only once.
+
+What it does:
+- Deletes repeated names, keeping each name's **highest** score. Capital letters don't matter, so `Usman` and `usman` count as the same person.
+- Raises the score limit, since the game no longer has a time limit.
+- From now on, a name that plays again only replaces its score if the new score is **higher**.
+- Guests can't add rows directly any more, only through this rule.
+
 ### 1.4 Copy your project address and public key
 1. Open **Project Settings** (the gear icon), then **API Keys**. You can also click the **Connect** button at the top of the project.
 2. Copy two values:

@@ -3,7 +3,7 @@
 A small responsive invitation website for two weddings in the Moien family: a desi-themed home page plus four individually themed event pages.
 
 - **Home (`index.html`):** a Pakistani shadi theme with a marigold toran, fairy lights, falling petals, a truck-art border and an illustrated dhol with baja-band trumpets. The **Play the dhol & baja** button plays a bhangra-style dhol beat and a short brass riff. The sound is generated live in the browser with the Web Audio API, so there are no audio files. It also has a countdown to the next event (Pakistan time) and four event cards above the footer that link to each invitation.
-- **Shagun Catch (`game.html`):** a 45-second game opened from the **Play game** button below the home page's top section. Guests enter a name and pick Team Rida, Team Awais Mahad or Team Urwah, with no login. They catch mithai, marigolds and shagun envelopes on a thaal and dodge green mirchi. When the game ends, a scoreboard appears. The team of the player at the top of the scoreboard is shown as the winning team.
+- **Shagun Catch (`game.html`):** an endless game opened from the **Play game** button below the home page's top section. Guests enter a name and pick Team Rida, Team Awais Mahad or Team Urwah, with no login. They catch mithai, marigolds and shagun envelopes on a thaal and dodge green mirchi. Missing any good item ends the game. It starts slow, speeds up gently for one minute, then jumps randomly faster and slower. Each name appears once on the scoreboard, with its best score. When the game ends, a scoreboard appears. The team of the player at the top of the scoreboard is shown as the winning team.
 - **Mehndi (`mehndi.html`):** both brothers, Monday, 21 December 2026 at 7:00 PM, Gulshan-e-Naseem, 30-B, Raza Town, Faisalabad.
 - **Barat — Awais & Rida (`barat.html`):** Tuesday, 22 December 2026. Breakfast is at 9:00 AM; the Barat departs at 10:00 AM sharp from Gulshan-e-Naseem, with arrival at The Memories Event Complex, Wazirabad at 1:00 PM.
 - **Barat — Mahad & Urwah (`barat-mahad.html`):** Wednesday, 23 December 2026 at 6:00 PM, White Rose Marquee.
@@ -46,6 +46,8 @@ By default each phone keeps its own scoreboard, so guests only see scores played
    ```
 
 2. In **Project Settings → API**, copy the project URL and the public `anon` key into `game-config.js`.
+
+Then also run `supabase-best-score.sql`, which keeps only each name's best score (see DEPLOY.md, step 1.3b).
 
 Guests can add scores but cannot edit or delete them. To clear the scoreboard, delete rows in Supabase's Table Editor.
 
