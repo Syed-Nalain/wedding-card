@@ -72,8 +72,8 @@ window.WeddingScores = (() => {
     return myRank;
   }
 
-  // Team score = total of the team's top 10 best scores (one best score per name).
-  const TEAM_TOP = 10;
+  // Team score = total of the team's top 3 best scores (one best score per name).
+  const TEAM_TOP = 3;
   function teamStandings(rows) {
     return Object.keys(TEAM_CLASS).map(team => {
       const players = rows.filter(r => r.team === team).sort((a, b) => b.score - a.score || a.at - b.at);
