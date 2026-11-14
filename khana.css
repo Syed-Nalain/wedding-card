@@ -1,0 +1,45 @@
+/* Khana Khul Gaya! buffet game */
+.team-note{color:#ffcf8a;font-weight:600;font-size:14px;margin:0 0 22px}
+.khana-stage{position:relative;border-radius:22px;border:3px solid var(--gold);padding:52px 10px 12px;
+  background:radial-gradient(#ffd24d14 1.4px,transparent 1.6px) 0 0/22px 22px,linear-gradient(#7a1630,#3a0918)}
+.phase{position:absolute;top:6px;left:0;right:0;text-align:center;margin:0;font-family:var(--display);color:var(--gold);font-size:26px;font-weight:600;text-shadow:0 2px 8px #0006}
+.khana-stage{transition:background .6s}
+.khana-stage.ev-0{background:radial-gradient(#ffd24d1c 1.4px,transparent 1.6px) 0 0/22px 22px,linear-gradient(#8a6a0c,#3d5a1e)}
+.khana-stage.ev-1{background:radial-gradient(#ffd24d14 1.4px,transparent 1.6px) 0 0/22px 22px,linear-gradient(#7a1630,#3a0918)}
+.khana-stage.ev-2{background:radial-gradient(#ffffff14 1.4px,transparent 1.6px) 0 0/22px 22px,linear-gradient(#2f5d55,#16302c)}
+.streak{position:absolute;top:12px;right:14px;margin:0;font-weight:700;font-size:13px;color:#7cf0b0}
+.spots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;min-height:190px}
+.spot{position:relative;border-radius:16px;border:2px dashed #ffd24d55;background:#ffffff0a;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;color:var(--cream);font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.spot.empty{justify-content:center;color:#ffcf8a88;font-size:12px}
+.spot.guest{border-style:solid;border-color:#ffd24d66;cursor:pointer}
+.spot.sel{border-color:var(--gold);background:#ffd24d26;box-shadow:0 0 0 3px #ffd24d66}
+.spot.vip{border-color:#e0457b}
+.spot .ava{font-size:38px;line-height:1}
+.spot .who{font-size:11px;font-weight:700;letter-spacing:.04em}
+.spot .order{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;font-size:22px;min-height:30px;background:#fff;border-radius:12px;padding:3px 6px}
+.spot .order span.got{opacity:.25}
+.spot .pat{width:90%;height:7px;border-radius:7px;background:#ffffff26;overflow:hidden;margin-top:auto}
+.spot .pat i{display:block;height:100%;background:#7cf0b0;border-radius:7px}
+.spot.shake{animation:shake .3s}
+.pop{position:absolute;top:30%;left:50%;transform:translateX(-50%);font-weight:800;font-size:18px;pointer-events:none;animation:popUp 1s ease-out forwards;white-space:nowrap}
+.pop.good{color:var(--gold)}.pop.bad{color:#ff8fa8}
+@keyframes popUp{to{transform:translate(-50%,-40px);opacity:0}}
+.queue{text-align:center;color:#ffcf8a;font-size:12px;min-height:1.3em;margin:6px 0}
+.counter{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dish{border:0;border-radius:14px;background:var(--cream);padding:10px 4px;font:700 12px var(--sans);color:var(--accent-dark);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 0 #c9a46a}
+.dish b{font-size:28px;line-height:1.1}
+.dish:active{transform:translateY(3px);box-shadow:0 1px 0 #c9a46a}
+.counter.locked .dish{opacity:.5}
+.result-stats{color:#f5dcc7;font-size:14px;margin:-12px 0 20px}
+.standings{display:grid;gap:10px;margin-bottom:12px}
+.standing{display:grid;grid-template-columns:1fr auto;gap:3px 8px;font-size:14px;padding:6px 8px;border-radius:10px}
+.standing.mine{background:#fff3d6}
+.standing-name{font-weight:700}.standing-pts{font-family:var(--display);font-weight:600;color:var(--accent-dark)}
+.standing-bar{grid-column:1/-1;height:10px;border-radius:10px;background:#f0e2c8;overflow:hidden}
+.standing-bar i{display:block;height:100%;border-radius:10px;background:#c27c0e}
+.standing.team-rida i{background:var(--t-rida,#e0457b)}.standing.team-urwah i{background:var(--t-urwah,#18a058)}
+.standing-meta{grid-column:1/-1;font-size:11px;color:#8c7a62}
+.banter{font-weight:700;color:var(--accent-dark);text-align:center;margin:4px 0}
+.team-rank{font-size:13px;color:#6b5a44;text-align:center;margin:0 0 14px}
+.guest-notes{list-style:none;padding:0;margin:0 auto 22px;max-width:440px;display:grid;gap:8px;text-align:left}
+.guest-notes li{background:#ffffff14;border:1px solid #ffd24d44;border-radius:14px 14px 14px 4px;padding:10px 14px;color:var(--cream);font-size:14px}

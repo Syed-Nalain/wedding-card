@@ -60,28 +60,21 @@
   }
   if (cdTitle) { tick(); setInterval(tick, 1000); }
 
-  /* ---------- winning team (team of the top scorer in Shagun Catch) ---------- */
-  (async () => {
-    const el = document.querySelector('[data-winning-team]');
-    if (!el) return;
-    const TEAM_CLASS = { 'Team Rida': 'team-rida', 'Team Awais Mahad': 'team-awais-mahad', 'Team Urwah': 'team-urwah' };
-    let top = null;
-    const cfg = window.GAME_CONFIG || {};
-    try {
-      if (cfg.supabaseUrl && cfg.supabaseAnonKey) {
-        const res = await fetch(`${cfg.supabaseUrl.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '')}/rest/v1/game_scores?select=name,team,score&order=score.desc,created_at.asc&limit=1`,
-          { headers: { apikey: cfg.supabaseAnonKey, ...(cfg.supabaseAnonKey.startsWith('eyJ') ? { Authorization: `Bearer ${cfg.supabaseAnonKey}` } : {}) } });
-        if (res.ok) top = (await res.json())[0] || null;
-      }
-    } catch (_) {}
-    if (!top) {
-      try { top = (JSON.parse(localStorage.getItem('shagun-catch-scores-v1')) || [])[0] || null; } catch (_) {}
-    }
-    if (top && TEAM_CLASS[top.team]) {
+  /* ---------- winning team of each game (team of that game's top scorer) ---------- */
+  document.querySelectorAll('[data-winning-team]').forEach(async el => {
+    const WS = window.WeddingScores;
+    if (!WS) return;
+    const board = WS.board(el.dataset.winningTeam);
+    const id = el.dataset.winningTeam;
+    let rows;
+    try { rows = await board.top(id === 'khana' ? 1000 : 1); } catch (_) { rows = board.localTop(1000); }
+    let top = rows[0];
+    if (id === 'khana') { const lead = WS.teamStandings(rows)[0]; top = lead.total ? lead : null; }
+    if (top && WS.TEAM_CLASS[top.team]) {
       el.textContent = top.team;
-      el.classList.add(TEAM_CLASS[top.team]);
+      el.classList.add(WS.TEAM_CLASS[top.team]);
     }
-  })();
+  });
 
   /* ---------- dhol + baja band ---------- */
   const btn = document.querySelector('[data-dhol-toggle]');

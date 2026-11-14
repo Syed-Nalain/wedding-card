@@ -1,0 +1,24 @@
+/* Games page: choose Shagun Catch or Joota Chupai, each with its own scoreboard */
+.games-wrap{max-width:1040px;margin:0 auto;text-align:center}
+.game-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:8px;text-align:left}
+.game-choice{display:flex;flex-direction:column;gap:14px}
+.choice-link{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:26px 22px 24px;border-radius:24px;background:#ffffff10;border:1.5px solid #ffd24d55;color:var(--cream);text-decoration:none;transition:transform .2s,border-color .2s,background .2s}
+.choice-link:hover{transform:translateY(-4px);border-color:var(--gold);background:#ffffff18}
+.choice-link:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.choice-link h2{font-family:var(--display);font-weight:500;font-size:clamp(28px,4vw,36px);margin:4px 0 0}
+.choice-link p{margin:0;color:#f5dcc7;font-size:14px;line-height:1.6;max-width:380px}
+.choice-link .game-btn{margin-top:8px}
+.choice-art{height:92px;display:flex;align-items:flex-end;justify-content:center;gap:12px}
+.choice-shagun canvas{width:52px;height:52px}
+.choice-shagun canvas:nth-child(2){width:64px;height:64px;margin-bottom:14px}
+.choice-joota{gap:12px}
+.choice-board{padding:16px 14px}
+.choice-winner{margin:0 0 10px;font-size:14px}
+.choice-winner strong{display:inline-block;margin-left:4px;padding:2px 10px;border-radius:999px;background:#f3e6cf;color:var(--accent-dark)}
+.choice-winner strong.team-rida{background:var(--t-rida);color:#fff}
+.choice-winner strong.team-awais-mahad{background:#c27c0e;color:#fff}
+.choice-winner strong.team-urwah{background:var(--t-urwah);color:#fff}
+.choice-board .board-title{font-size:18px;margin-bottom:4px}
+.choice-board .board li{padding:8px 4px}
+.choice-board .board .pts{font-size:18px}
+@media(max-width:760px){.game-choices{grid-template-columns:1fr;gap:14px}.game-choice{display:contents}.choice-link{order:1}.choice-board{order:2}.choice-board .board-title:before{content:attr(data-game) " · "}}

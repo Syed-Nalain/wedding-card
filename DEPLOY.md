@@ -79,6 +79,15 @@ What it does:
 - From now on, a name that plays again only replaces its score if the new score is **higher**.
 - Guests can't add rows directly any more, only through this rule.
 
+### 1.3c Scoreboard for the second game (Khana Khul Gaya!)
+Khana Khul Gaya! keeps its own scoreboard in a separate table.
+
+1. Open **`supabase-khana.sql`** from the project folder and copy everything in it.
+2. In Supabase, open **SQL Editor → New query**, paste it and click **Run**.
+3. The result is an empty table (no rows). That's expected until someone plays.
+
+Until this has been run, Khana Khul Gaya! scores are kept only on each guest's phone. The scoreboard says "Could not reach the shared scoreboard".
+
 ### 1.4 Copy your project address and public key
 1. Open **Project Settings** (the gear icon), then **API Keys**. You can also click the **Connect** button at the top of the project.
 2. Copy two values:
@@ -210,6 +219,7 @@ Open your live link on your phone **and** on a second phone. Check that:
 1. **Clear your test scores.** In Supabase, open **SQL Editor** and run:
    ```sql
    delete from public.game_scores;
+   delete from public.khana_scores;
    ```
 2. Open the site once more and check the home page says **Winning team: Not decided yet**.
 3. Share the link on WhatsApp. For printed cards, you can make a QR code of the link with any free QR generator.
