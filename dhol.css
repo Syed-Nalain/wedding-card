@@ -1,0 +1,17 @@
+/* Dhol Beat */
+.mg-stage{overflow:hidden;--deep:#4b0c20;--deep-2:#6e1231;--hi:#f2a516;--team-0:#18a058;--team-1:#e0457b;position:relative;border-radius:22px;border:3px solid var(--gold);padding:44px 12px 14px;background:radial-gradient(#ffffff12 1.4px,transparent 1.6px) 0 0/22px 22px,linear-gradient(var(--deep-2),var(--deep))}
+.mg-stage .streak{position:absolute;top:12px;left:0;right:0;text-align:center;margin:0;font-weight:700;color:var(--hi)}
+.dhol-stage{padding-top:40px;user-select:none}
+.judge{position:absolute;top:42%;left:0;right:0;text-align:center;font:800 22px var(--sans);margin:0;opacity:0;z-index:4;pointer-events:none;text-shadow:0 2px 8px #0008}
+.judge.show{animation:judge .5s ease-out}.judge.good{color:var(--hi)}.judge.ok{color:var(--cream)}.judge.bad{color:#ff8fa8}
+@keyframes judge{0%{opacity:1;transform:scale(1.25)}100%{opacity:0;transform:scale(1) translateY(-14px)}}
+.lanes{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;height:min(44vh,380px)}
+.lane{position:relative;border-radius:14px;background:#ffffff0d;border:1px dashed color-mix(in srgb,var(--gold) 40%,transparent);overflow:hidden}
+.hitline{position:absolute;left:0;right:0;top:86%;height:4px;margin-top:-2px;background:var(--gold);box-shadow:0 0 14px var(--gold);border-radius:4px;pointer-events:none}
+.note{position:absolute;left:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:3px solid var(--cream);box-shadow:0 0 14px #0006}
+.note.n0{background:var(--team-0)}.note.n1{background:var(--hi)}.note.n2{background:var(--team-1)}
+.note.gone{transform:scale(1.6);opacity:0;transition:.2s}
+.pads{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.pad{border:0;border-radius:16px;padding:14px 4px 10px;background:var(--cream);color:var(--deep);font-size:32px;line-height:1;cursor:pointer;box-shadow:0 5px 0 var(--gold);touch-action:none;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pad small{font:700 11px var(--sans);letter-spacing:.06em}
+.pad.hit{transform:translateY(4px);box-shadow:0 1px 0 var(--gold);background:var(--hi)}

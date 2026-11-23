@@ -67,9 +67,9 @@
     const board = WS.board(el.dataset.winningTeam);
     const id = el.dataset.winningTeam;
     let rows;
-    try { rows = await board.top(id === 'khana' ? 1000 : 1); } catch (_) { rows = board.localTop(1000); }
+    try { rows = await board.top(id !== 'shagun' ? 1000 : 1); } catch (_) { rows = board.localTop(1000); }
     let top = rows[0];
-    if (id === 'khana') { const lead = WS.teamStandings(rows)[0]; top = lead.total ? lead : null; }
+    if (id !== 'shagun') { const lead = WS.teamStandings(rows)[0]; top = lead.total ? lead : null; }
     if (top && WS.TEAM_CLASS[top.team]) {
       el.textContent = top.team;
       el.classList.add(WS.TEAM_CLASS[top.team]);

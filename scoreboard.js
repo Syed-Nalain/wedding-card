@@ -12,7 +12,8 @@ window.WeddingScores = (() => {
   const TEAM_CLASS = { 'Team Rida': 'team-rida', 'Team Awais Mahad': 'team-awais-mahad', 'Team Urwah': 'team-urwah' };
   const GAMES = {
     shagun: { title: 'Shagun Catch', table: 'game_scores', rpc: 'submit_score', localKey: 'shagun-catch-scores-v1', page: 'game.html' },
-    khana:  { title: 'Khana Khul Gaya!', table: 'khana_scores', rpc: 'submit_khana_score', localKey: 'khana-khul-gaya-scores-v1', page: 'khana.html' }
+    khana:  { title: 'Khana Khul Gaya!', table: 'khana_scores', rpc: 'submit_khana_score', localKey: 'khana-khul-gaya-scores-v1', page: 'khana.html' },
+    dhol:   { title: 'Dhol Beat', table: 'dhol_scores', rpc: 'submit_dhol_score', localKey: 'dhol-beat-scores-v1', page: 'dhol.html' }
   };
 
   const store = {

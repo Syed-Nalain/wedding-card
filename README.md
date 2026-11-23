@@ -6,6 +6,7 @@ A small responsive invitation website for two weddings in the Moien family: a de
 - **Shagun Catch (`game.html`):** a 45-second game opened from the **Play game** button below the home page's top section. Guests enter a name and pick Team Rida, Team Awais Mahad or Team Urwah, with no login. They catch mithai, marigolds and shagun envelopes on a thaal and dodge green mirchi. Missing any good item ends the game. A round lasts 45 seconds. Rare glowing shaguns add 10 extra seconds: never in the first 12 seconds, at least 20 seconds apart, and at most 3 per round. Each name appears once on the scoreboard, with its best score. When the game ends, a scoreboard appears. The team of the player at the top of the scoreboard is shown as the winning team.
 - **Games page (`games.html`):** the home page's **Play game** button opens this page. Guests choose **Shagun Catch** or **Khana Khul Gaya!**. Each game has its own top 5 and its own winning team.
 - **Khana Khul Gaya! (`khana.html`):** a 90-second buffet game. Tap a guest, then the dishes they ordered. Fast, correct serves score more, perfect streaks multiply points, and Phupho counts double; wrong dishes and angry guests lose points. Every round has the same guests per phase (fair), but arrivals, orders and positions are random. Team score = total of each team's top 3 best scores.
+- **Dhol Beat (`dhol.html`):** a 45-second rhythm game. Tap each drum on the golden line. Every round has the same number of beats; lanes and exact timing are random. Team score = total of each team's top 3 best scores.
 - **Mehndi (`mehndi.html`):** both brothers, Monday, 21 December 2026 at 7:00 PM, Gulshan-e-Naseem, 30-B, Raza Town, Faisalabad.
 - **Barat — Awais & Rida (`barat.html`):** Tuesday, 22 December 2026. Breakfast is at 9:00 AM; the Barat departs at 10:00 AM sharp from Gulshan-e-Naseem, with arrival at The Memories Event Complex, Wazirabad at 1:00 PM.
 - **Barat — Mahad & Urwah (`barat-mahad.html`):** Wednesday, 23 December 2026 at 6:00 PM, White Rose Marquee.
@@ -25,6 +26,8 @@ A small responsive invitation website for two weddings in the Moien family: a de
 - `game.html`, `game.css`, `game.js`, `game-config.js` — the Shagun Catch game and its scoreboard settings.
 - `games.html`, `games.css`, `games.js` — the page for choosing a game.
 - `khana.html`, `khana.css`, `khana.js` — the Khana Khul Gaya! game.
+- `dhol.html`, `dhol.css`, `dhol.js`, `minigame.js` — the Dhol Beat game.
+- `supabase-dhol.sql` — creates the Dhol Beat scoreboard in Supabase.
 - `scoreboard.js` — shared scoreboard code for Khana Khul Gaya!, the games page and the home page.
 - `supabase-khana.sql` — creates the separate Khana Khul Gaya! scoreboard in Supabase.
 - `styles.css` — shared styles and the per-event colour themes.

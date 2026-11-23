@@ -88,6 +88,9 @@ Khana Khul Gaya! keeps its own scoreboard in a separate table.
 
 Until this has been run, Khana Khul Gaya! scores are kept only on each guest's phone. The scoreboard says "Could not reach the shared scoreboard".
 
+### 1.3d Scoreboard for Dhol Beat
+Run **`supabase-dhol.sql`** the same way. Until then, Dhol Beat scores stay on each guest's phone.
+
 ### 1.4 Copy your project address and public key
 1. Open **Project Settings** (the gear icon), then **API Keys**. You can also click the **Connect** button at the top of the project.
 2. Copy two values:
@@ -220,6 +223,7 @@ Open your live link on your phone **and** on a second phone. Check that:
    ```sql
    delete from public.game_scores;
    delete from public.khana_scores;
+   delete from public.dhol_scores;
    ```
 2. Open the site once more and check the home page says **Winning team: Not decided yet**.
 3. Share the link on WhatsApp. For printed cards, you can make a QR code of the link with any free QR generator.
